@@ -12,11 +12,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { useTheme } from "@/providers/ThemeProvider"
+import useAuthStore from "@/store/auth/useAuthStore"
 
 export default function AppNavbar() {
   const { theme, setTheme } = useTheme();
   const [isProfileOpen, setIsProfileOpen] = useState(false)
-
+  const { logout } = useAuthStore();
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light")
   }
@@ -58,7 +59,7 @@ export default function AppNavbar() {
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600">
+            <DropdownMenuItem className="text-red-600" onClick={logout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>

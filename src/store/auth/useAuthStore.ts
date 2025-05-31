@@ -30,6 +30,7 @@ interface AuthActions {
     logout: () => void;
     refreshToken: (token:string, refreshToken:string) => Promise<void>;
     setError: (error: string | null) => void;
+    checkAuth: () => Promise<boolean>;
 }
 
 const initialState: AuthState = {
@@ -134,6 +135,33 @@ const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
                 error: error instanceof Error ? error.message : 'An error occurred during refresh token',
             });
         }
+    },
+    checkAuth: async () => {
+      const token = localStorage.getItem('token');
+      const rk = localStorage.getItem('refreshToken');
+      const refreshTokenExpiryTime = localStorage.getItem('refreshTokenExpiryTime');
+      const exp = localStorage.getItem('exp');
+
+      if (!token) {
+        get().logout();
+        return false;
+      }else if (exp && parseInt(exp) < Date.now() / 1000) {
+        console.log("Token expired");
+        if (rk && refreshTokenExpiryTime && Date.parse(refreshTokenExpiryTime) < Date.now()) {
+          console.log("Refresh token expired");
+          get().logout();
+          return false;
+        } else if (rk && refreshTokenExpiryTime && Date.parse(refreshTokenExpiryTime) >= Date.now()) {
+          console.log("Refresh token is valid");
+          await get().refreshToken(token, rk);
+          return true;
+        }
+      } else {
+        console.log("Token is valid");
+        set({ isAuthenticated: true });
+        return true;
+      }
+      return false;
     },
     setError: (error: string | null) => {
         set({ error });

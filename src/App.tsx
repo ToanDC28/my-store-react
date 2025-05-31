@@ -1,17 +1,15 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import Dashboard from "./pages/Dashboard"
+import { RouterProvider } from "react-router-dom"
+import router from "./pages/routes"
 import "./index.css"
+import { BreadcrumbProvider } from "./context/BreadcrumbContext"
 
 function App() {
   return (
-    <Router>
+    <BreadcrumbProvider>
       <div className="h-screen w-full">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Routes>
+        <RouterProvider router={router} />
       </div>
-    </Router>
+    </BreadcrumbProvider>
   )
 }
 
