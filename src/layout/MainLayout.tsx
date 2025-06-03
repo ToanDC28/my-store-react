@@ -64,7 +64,7 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
               {/* Content Panel */}
               <ResizablePanel defaultSize={90} className="flex-1">
                 <div className="h-full w-full overflow-auto">
-                  <div className="p-4 w-full">
+                  <div className="p-1 w-full">
                     <BreadcrumbNav />
 
                     {/* {title && (

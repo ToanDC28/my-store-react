@@ -1,9 +1,7 @@
-import MainLayout from "@/layout/MainLayout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ShoppingCart, Package, Users, DollarSign } from "lucide-react"
 
 export default function Dashboard() {
-  const breadcrumbs = [{ label: "Home", href: "/" }, { label: "Dashboard" }]
 
   return (
     <>

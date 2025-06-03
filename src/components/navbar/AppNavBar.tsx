@@ -13,11 +13,13 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { useTheme } from "@/providers/ThemeProvider"
 import useAuthStore from "@/store/auth/useAuthStore"
+import { useNavigate } from "react-router-dom"
 
 export default function AppNavbar() {
   const { theme, setTheme } = useTheme();
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const { logout } = useAuthStore();
+  const navigate = useNavigate();
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light")
   }
@@ -51,7 +53,7 @@ export default function AppNavbar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/user-profile')}>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>

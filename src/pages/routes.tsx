@@ -6,6 +6,7 @@ import useAuthStore from '@/store/auth/useAuthStore';
 import { Breadcrumb } from '@/context/BreadcrumbContext';
 import { ProductBoard } from './products/ProductBoard';
 import ForgotPasswordPage from './auth/ForgotPassword';
+import UserProfile from './personal/UserProfile';
 
 // Define route configuration with breadcrumbs
 const routes: Array<{
@@ -25,12 +26,14 @@ const routes: Array<{
   {
     path: '/forgot-password',
     element: <ForgotPasswordPage />,
-    breadcrumb: { label: 'Forgot password', href: '/forgot-password' },
   },
   {
     path: '/login',
     element: <Login />,
-    breadcrumb: { label: 'Login', href: '/login' },
+  },
+  {
+    path: '/user-profile',
+    element: <UserProfile />,
   },
   {
     path: '/',
