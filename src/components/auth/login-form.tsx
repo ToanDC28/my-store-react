@@ -7,14 +7,12 @@ import useAuthStore from "@/store/auth/useAuthStore"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const LoginForm = () => {
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
-  const [rememberMe, setRememberMe] = useState(false)
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
@@ -26,8 +24,8 @@ const LoginForm = () => {
   // Redirect if already authenticated
   useEffect(() => {
     const check = async () => {
-      const check = await checkAuth();
-      if (check) {
+      const ok = await checkAuth();
+      if (ok) {
         navigate(from, { replace: true })
       }
     }
@@ -38,13 +36,13 @@ const LoginForm = () => {
     e.preventDefault()
     setError(null)
 
-    if (!email || !password) {
-      setError("Please enter both email and password")
+    if (!username || !password) {
+      setError("Vui lòng nhập tên đăng nhập và mật khẩu")
       return
     }
 
     try {
-      await login(email, password)
+      await login(username, password)
       navigate(from, { replace: true })
     } catch (err) {
       console.error("Login failed:", err)
@@ -63,9 +61,9 @@ const LoginForm = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Sign in to your account</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Xưởng cơ khí</CardTitle>
           <CardDescription className="text-center">
-            Enter your email and password to access your account
+            Đăng nhập bằng tài khoản nội bộ (vd: admin / Admin@123)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -77,22 +75,22 @@ const LoginForm = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email address</Label>
+              <Label htmlFor="username">Tên đăng nhập</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
                 required
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Nhập tên đăng nhập"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 disabled={isLoading}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mật khẩu</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -100,7 +98,7 @@ const LoginForm = () => {
                   type={isPasswordVisible ? "text" : "password"}
                   autoComplete="current-password"
                   required
-                  placeholder="Enter your password"
+                  placeholder="Nhập mật khẩu"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -124,40 +122,17 @@ const LoginForm = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={setRememberMe} disabled={isLoading} />
-                <Label
-                  htmlFor="remember-me"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Remember me
-                </Label>
-              </div>
-
-              <Button variant="link" className="px-0 font-normal" asChild>
-                <a href="/forgot-password">Forgot password?</a>
-              </Button>
-            </div>
-
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  Đang đăng nhập...
                 </>
               ) : (
-                "Sign in"
+                "Đăng nhập"
               )}
             </Button>
           </form>
-
-          <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Don't have an account? </span>
-            <Button variant="link" className="px-0 font-normal" asChild>
-              <a href="/register">Create an account</a>
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

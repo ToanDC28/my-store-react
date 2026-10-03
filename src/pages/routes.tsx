@@ -4,9 +4,11 @@ import Dashboard from './Dashboard';
 import ProtectedLayout from '@/layout/ProtectedLayout';
 import useAuthStore from '@/store/auth/useAuthStore';
 import { Breadcrumb } from '@/context/BreadcrumbContext';
-import { ProductBoard } from './products/ProductBoard';
-import ForgotPasswordPage from './auth/ForgotPassword';
 import UserProfile from './personal/UserProfile';
+import MaterialsPage from './materials/MaterialsPage';
+import StocksPage from './inventory/StocksPage';
+import QuickImportPage from './inventory/QuickImportPage';
+import SuppliersPage from './suppliers/SuppliersPage';
 
 // Define route configuration with breadcrumbs
 const routes: Array<{
@@ -22,10 +24,6 @@ const routes: Array<{
   {
     path: '/',
     element: <RootRedirect />,
-  },
-  {
-    path: '/forgot-password',
-    element: <ForgotPasswordPage />,
   },
   {
     path: '/login',
@@ -45,9 +43,24 @@ const routes: Array<{
         breadcrumb: { label: 'Dashboard', href: '/dashboard' },
       },
       {
-        path: 'products',
-        element: <ProductBoard />,
-        breadcrumb: { label: 'Products', href: '/products' },
+        path: 'materials',
+        element: <MaterialsPage />,
+        breadcrumb: { label: 'Vật tư', href: '/materials' },
+      },
+      {
+        path: 'stocks',
+        element: <StocksPage />,
+        breadcrumb: { label: 'Tồn kho', href: '/stocks' },
+      },
+      {
+        path: 'quick-import',
+        element: <QuickImportPage />,
+        breadcrumb: { label: 'Nhập nhanh', href: '/quick-import' },
+      },
+      {
+        path: 'suppliers',
+        element: <SuppliersPage />,
+        breadcrumb: { label: 'Nhà cung cấp', href: '/suppliers' },
       },
       // Add more protected routes here with their breadcrumbs
     ],

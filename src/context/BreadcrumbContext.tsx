@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useState } from 'react';
+import { createContext, useContext, ReactNode, useState, useMemo } from 'react';
 
 export interface Breadcrumb {
   label: string;
@@ -27,9 +27,11 @@ interface BreadcrumbProviderProps {
 
 export const BreadcrumbProvider = ({ children, initialBreadcrumbs = [] }: BreadcrumbProviderProps) => {
   const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>(initialBreadcrumbs);
+  // Memo để đổi breadcrumb không re-render cả cây + ngược lại
+  const value = useMemo(() => ({ breadcrumbs, setBreadcrumbs }), [breadcrumbs]);
 
   return (
-    <BreadcrumbContext.Provider value={{ breadcrumbs, setBreadcrumbs }}>
+    <BreadcrumbContext.Provider value={value}>
       {children}
     </BreadcrumbContext.Provider>
   );

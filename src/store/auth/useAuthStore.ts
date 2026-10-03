@@ -1,172 +1,137 @@
 import { create } from 'zustand';
-import User from "@/type";
-import { axiosInstance } from '@/lib/axios';
+import User from '@/type';
 import { jwtDecode } from 'jwt-decode';
+import { authApi } from '@/api/auth';
+import { ApiError, clearTokens, getAccessToken, getRefreshToken, setTokens } from '@/lib/api-client';
+
+/** Claims của backend Spring (JwtService): sub=username, email, roles[], permissions[], type, jti */
+interface BackendTokenPayload {
+  sub: string;
+  email?: string;
+  roles?: string[];
+  permissions?: string[];
+  type?: string;
+  exp: number;
+}
 
 interface AuthState {
-    user: User | null;
-    isAuthenticated: boolean;
-    isLoading: boolean;
-    error: string | null;
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
 }
-interface MyTokenPayload {
-    "tenant": string;
-    "exp": number;
-    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": string;
-    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress": string;
-    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string;
-    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname": string;
-    "fullName": string;
-    "image_url": string;
-    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/mobilephone": string;
-    "ipAddress": string;
-    "permission": string[];
-    // ...add other claims as needed
-  }
-  
 
 interface AuthActions {
-    login: (email: string, password: string) => Promise<void>;
-    logout: () => void;
-    refreshToken: (token:string, refreshToken:string) => Promise<void>;
-    setError: (error: string | null) => void;
-    checkAuth: () => Promise<boolean>;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  setError: (error: string | null) => void;
+  checkAuth: () => Promise<boolean>;
+  hasPermission: (permission: string) => boolean;
+  hasRole: (role: string) => boolean;
 }
 
 const initialState: AuthState = {
-    user: null,
-    isAuthenticated: false,
-    isLoading: false,
-    error: null,
+  user: null,
+  isAuthenticated: false,
+  isLoading: false,
+  error: null,
 };
 
+function buildUser(payload: BackendTokenPayload, profile?: { fullName?: string | null; enabled?: boolean }): User {
+  return {
+    id: 0,
+    username: payload.sub,
+    email: payload.email ?? '',
+    fullName: profile?.fullName ?? null,
+    enabled: profile?.enabled ?? true,
+    roles: payload.roles ?? [],
+    permissions: payload.permissions ?? [],
+  };
+}
+
 const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
-    ...initialState,
-    
-    login: async (email: string, password: string) => {
-        try {
-            set({ isLoading: true, error: null });
-            
-            if (password.length < 6) {
-                throw new Error('Password must be at least 6 characters long');
-            }
-            const response = await axiosInstance.post('/tokens', { email, password });
-            const data = response.data;
+  ...initialState,
 
-            try {
-                const decoded = jwtDecode<MyTokenPayload>(data.token);
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('refreshToken', data.refreshToken);
-                localStorage.setItem('tenant', decoded.tenant);
-                localStorage.setItem('exp', decoded.exp.toString());
-                localStorage.setItem('refreshTokenExpiryTime', data.refreshTokenExpiryTime);
-                set({
-                    user: {
-                        id: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
-                        email: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
-                        name: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
-                        surName: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'],
-                        fullName: decoded['fullName'],
-                        avatar: decoded['image_url'],
-                        phone: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/mobilephone'],
-                        ipAddress: decoded['ipAddress'],
-                        permissions: decoded['permission'],
-                    },
-                    isAuthenticated: true,
-                    isLoading: false,
-                    error: null,
-                });
-                console.log("User logged in:", get().user);
-            } catch (decodeError) {
-                console.error('Error decoding token:', decodeError);
-                throw new Error('Invalid token received');
-            }
-        } catch (error) {
-            set({
-                isLoading: false,
-                error: error instanceof Error ? error.message : 'An error occurred during login',
-            });
-            throw error; // Re-throw to handle in the component
-        }
-    },
+  login: async (username: string, password: string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const pair = await authApi.login(username.trim(), password);
+      setTokens(pair.accessToken, pair.refreshToken);
+      const payload = jwtDecode<BackendTokenPayload>(pair.accessToken);
+      // Lấy fullName/enabled từ /me (JWT không có)
+      let profile: { fullName?: string | null; enabled?: boolean } | undefined;
+      try {
+        const me = await authApi.me();
+        profile = { fullName: me.fullName, enabled: me.enabled };
+      } catch {
+        profile = undefined;
+      }
+      set({ user: buildUser(payload, profile), isAuthenticated: true, isLoading: false, error: null });
+    } catch (error) {
+      clearTokens();
+      const message = error instanceof ApiError ? error.message : 'Đăng nhập thất bại';
+      set({ isLoading: false, error: message });
+      throw error;
+    }
+  },
 
-    logout: () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('refreshTokenExpiryTime');
-        localStorage.removeItem('exp');
-        localStorage.removeItem('tenant');
-        set({
-            user: null,
-            isAuthenticated: false,
-            error: null,
-        });
-    },
+  logout: async () => {
+    try {
+      await authApi.logout(getRefreshToken());
+    } catch {
+      // logout best-effort: token hỏng vẫn xóa local
+    } finally {
+      clearTokens();
+      set({ user: null, isAuthenticated: false, error: null });
+    }
+  },
 
-    refreshToken: async (token:string, refreshToken:string) => {
-        const response = await axiosInstance.post('/tokens/refresh', { token, refreshToken });
-        const data = response.data;
-        try {
-            const decoded = jwtDecode<MyTokenPayload>(data.token);
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('refreshToken', data.refreshToken);
-            localStorage.setItem('tenant', decoded.tenant);
-            localStorage.setItem('exp', decoded.exp.toString());
-            localStorage.setItem('refreshTokenExpiryTime', data.refreshTokenExpiryTime);
-            set({
-                user: {
-                    id: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'],
-                    email: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
-                    name: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
-                    surName: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'],
-                    fullName: decoded['fullName'],
-                    avatar: decoded['image_url'],
-                    phone: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/mobilephone'],
-                    ipAddress: decoded['ipAddress'],
-                    permissions: decoded['permission'],
-                },
-                isAuthenticated: true,
-                isLoading: false,
-                error: null,
-            });
-        } catch (error) {
-            set({
-                isLoading: false,
-                error: error instanceof Error ? error.message : 'An error occurred during refresh token',
-            });
-        }
-    },
-    checkAuth: async () => {
-      const token = localStorage.getItem('token');
-      const rk = localStorage.getItem('refreshToken');
-      const refreshTokenExpiryTime = localStorage.getItem('refreshTokenExpiryTime');
-      const exp = localStorage.getItem('exp');
-
-      if (!token) {
-        get().logout();
-        return false;
-      }else if (exp && parseInt(exp) < Date.now() / 1000) {
-        console.log("Token expired");
-        if (rk && refreshTokenExpiryTime && Date.parse(refreshTokenExpiryTime) < Date.now()) {
-          console.log("Refresh token expired");
+  checkAuth: async () => {
+    const token = getAccessToken();
+    if (!token) {
+      set({ user: null, isAuthenticated: false });
+      return false;
+    }
+    try {
+      const payload = jwtDecode<BackendTokenPayload>(token);
+      if (payload.exp * 1000 < Date.now()) {
+        // Access hết hạn: interceptor sẽ tự refresh ở request tới;
+        // ở đây thử refresh 1 lần để giữ session
+        const rk = getRefreshToken();
+        if (!rk) {
           get().logout();
           return false;
-        } else if (rk && refreshTokenExpiryTime && Date.parse(refreshTokenExpiryTime) >= Date.now()) {
-          console.log("Refresh token is valid");
-          await get().refreshToken(token, rk);
-          return true;
         }
-      } else {
-        console.log("Token is valid");
-        set({ isAuthenticated: true });
-        return true;
+        try {
+          const pair = await authApi.refresh(rk);
+          setTokens(pair.accessToken, pair.refreshToken);
+          const fresh = jwtDecode<BackendTokenPayload>(pair.accessToken);
+          set({ user: buildUser(fresh), isAuthenticated: true });
+          return true;
+        } catch {
+          get().logout();
+          return false;
+        }
       }
+      // Token còn hạn: dựng user từ claims (profile chi tiết lấy lazy ở màn profile)
+      if (!get().user) {
+        set({ user: buildUser(payload), isAuthenticated: true });
+      } else {
+        set({ isAuthenticated: true });
+      }
+      return true;
+    } catch {
+      get().logout();
       return false;
-    },
-    setError: (error: string | null) => {
-        set({ error });
-    },
+    }
+  },
+
+  hasPermission: (permission: string) => get().user?.permissions.includes(permission) ?? false,
+  hasRole: (role: string) => get().user?.roles.includes(role) ?? false,
+
+  setError: (error: string | null) => {
+    set({ error });
+  },
 }));
 
 export default useAuthStore;
-
