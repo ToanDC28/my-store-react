@@ -45,6 +45,15 @@ export interface MaterialResponse {
   location?: string | null;
   active: boolean;
   lowStock: boolean;
+  materialGrade?: string | null;
+  standard?: string | null;
+  spec?: string | null;
+  thicknessMm?: number | null;
+  widthMm?: number | null;
+  lengthMm?: number | null;
+  diameterMm?: number | null;
+  strengthGrade?: string | null;
+  detail?: string | null;
 }
 
 export interface SupplierResponse {
@@ -94,6 +103,15 @@ export interface WorkOrderMaterialResponse {
   actualTotal: number;
 }
 
+export interface WorkOrderAttachmentResponse {
+  id: number;
+  fileName: string;
+  url?: string | null;
+  contentType?: string | null;
+  sizeBytes: number;
+  uploadedBy?: string | null;
+}
+
 export interface WorkOrderResponse {
   id: number;
   code: string;
@@ -111,6 +129,7 @@ export interface WorkOrderResponse {
   materialPlannedCost: number;
   materialActualCost: number;
   materials: WorkOrderMaterialResponse[];
+  attachments?: WorkOrderAttachmentResponse[] | null;
 }
 
 export interface SalesOrderItemResponse {
@@ -271,7 +290,9 @@ export interface AdvanceResponse {
   customerId: number;
   customerName?: string | null;
   workOrderId?: number | null;
+  workOrderCode?: string | null;
   salesOrderId?: number | null;
+  salesOrderCode?: string | null;
   amount: number;
   method: PaymentMethod;
   status: AdvanceStatus;

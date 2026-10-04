@@ -1,6 +1,6 @@
 import { apiClient, unwrap, type PageResponse } from '@/lib/api-client';
 import { toParams, type SearchParams } from './auth';
-import type { WorkOrderResponse, WorkOrderStatus, WorkOrderType } from './types';
+import type { WorkOrderAttachmentResponse, WorkOrderResponse, WorkOrderStatus, WorkOrderType } from './types';
 
 export interface SearchWorkOrdersParams extends SearchParams {
   keyword?: string;
@@ -24,4 +24,15 @@ export const workOrdersApi = {
     unwrap<WorkOrderResponse>(apiClient.post(`/api/work-orders/${id}/consume`, input)),
   done: (id: number) => unwrap<WorkOrderResponse>(apiClient.post(`/api/work-orders/${id}/done`)),
   cancel: (id: number) => unwrap<WorkOrderResponse>(apiClient.post(`/api/work-orders/${id}/cancel`)),
+  attachments: (id: number) =>
+    unwrap<WorkOrderAttachmentResponse[]>(apiClient.get(`/api/work-orders/${id}/attachments`)),
+  uploadPhoto: (id: number, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return unwrap<WorkOrderAttachmentResponse>(
+      apiClient.post(`/api/work-orders/${id}/attachments`, form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }),
+    );
+  },
 };

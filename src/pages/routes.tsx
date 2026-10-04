@@ -9,6 +9,15 @@ import MaterialsPage from './materials/MaterialsPage';
 import StocksPage from './inventory/StocksPage';
 import QuickImportPage from './inventory/QuickImportPage';
 import SuppliersPage from './suppliers/SuppliersPage';
+import WorkOrdersPage from './workorders/WorkOrdersPage';
+import WorkOrderDetailPage from './workorders/WorkOrderDetailPage';
+import SalesOrdersPage from './sales/SalesOrdersPage';
+import SalesOrderDetailPage from './sales/SalesOrderDetailPage';
+import GoodsIssuesPage from './sales/GoodsIssuesPage';
+import CustomersPage from './customers/CustomersPage';
+import InvoicesPage from './invoices/InvoicesPage';
+import InvoiceDetailPage from './invoices/InvoiceDetailPage';
+import PaymentsPage from './payments/PaymentsPage';
 
 // Define route configuration with breadcrumbs
 const routes: Array<{
@@ -61,6 +70,51 @@ const routes: Array<{
         path: 'suppliers',
         element: <SuppliersPage />,
         breadcrumb: { label: 'Nhà cung cấp', href: '/suppliers' },
+      },
+      {
+        path: 'work-orders',
+        element: <WorkOrdersPage />,
+        breadcrumb: { label: 'Sửa chữa', href: '/work-orders' },
+      },
+      {
+        path: 'work-orders/:id',
+        element: <WorkOrderDetailPage />,
+        breadcrumb: { label: 'Chi tiết đơn', href: '/work-orders' },
+      },
+      {
+        path: 'sales',
+        element: <SalesOrdersPage />,
+        breadcrumb: { label: 'Bán hàng', href: '/sales' },
+      },
+      {
+        path: 'sales/:id',
+        element: <SalesOrderDetailPage />,
+        breadcrumb: { label: 'Chi tiết đơn bán', href: '/sales' },
+      },
+      {
+        path: 'goods-issues',
+        element: <GoodsIssuesPage />,
+        breadcrumb: { label: 'Phiếu xuất', href: '/goods-issues' },
+      },
+      {
+        path: 'customers',
+        element: <CustomersPage />,
+        breadcrumb: { label: 'Khách hàng', href: '/customers' },
+      },
+      {
+        path: 'invoices',
+        element: <InvoicesPage />,
+        breadcrumb: { label: 'Hóa đơn', href: '/invoices' },
+      },
+      {
+        path: 'invoices/:id',
+        element: <InvoiceDetailPage />,
+        breadcrumb: { label: 'Chi tiết HĐ', href: '/invoices' },
+      },
+      {
+        path: 'payments',
+        element: <PaymentsPage />,
+        breadcrumb: { label: 'Thu chi', href: '/payments' },
       },
       // Add more protected routes here with their breadcrumbs
     ],

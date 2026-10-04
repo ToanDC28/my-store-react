@@ -6,6 +6,7 @@ export interface SearchMaterialsParams extends SearchParams {
   keyword?: string;
   sku?: string;
   categoryId?: number;
+  materialGrade?: string;
   lowStockOnly?: boolean;
   active?: boolean;
 }
@@ -20,6 +21,15 @@ export interface CreateMaterialInput {
   sellPrice?: number | null;
   minStock?: number;
   location?: string | null;
+  materialGrade?: string | null;
+  standard?: string | null;
+  spec?: string | null;
+  thicknessMm?: number | null;
+  widthMm?: number | null;
+  lengthMm?: number | null;
+  diameterMm?: number | null;
+  strengthGrade?: string | null;
+  detail?: string | null;
 }
 
 export interface UpdateMaterialInput {
@@ -32,6 +42,15 @@ export interface UpdateMaterialInput {
   minStock?: number;
   location?: string | null;
   active?: boolean;
+  materialGrade?: string | null;
+  standard?: string | null;
+  spec?: string | null;
+  thicknessMm?: number | null;
+  widthMm?: number | null;
+  lengthMm?: number | null;
+  diameterMm?: number | null;
+  strengthGrade?: string | null;
+  detail?: string | null;
 }
 
 export const materialsApi = {

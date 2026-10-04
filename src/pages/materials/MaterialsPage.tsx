@@ -20,11 +20,14 @@ const UNITS: MaterialUnit[] = ['CAI', 'KG', 'MET', 'LIT', 'BO', 'HOP', 'CUON'];
 
 const emptyForm: CreateMaterialInput = {
   sku: '', name: '', unit: 'CAI', costPrice: 0, sellPrice: null, minStock: 0, location: '', brand: '',
+  materialGrade: '', standard: '', spec: '', thicknessMm: null, widthMm: null, lengthMm: null,
+  diameterMm: null, strengthGrade: '', detail: '',
 };
 
 export default function MaterialsPage() {
   const [page, setPage] = useState<PageResponse<MaterialResponse> | null>(null);
   const [keyword, setKeyword] = useState('');
+  const [grade, setGrade] = useState('');
   const [pageNum, setPageNum] = useState(0);
   const [lowStockOnly, setLowStockOnly] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -38,14 +41,14 @@ export default function MaterialsPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await materialsApi.search({ keyword: keyword || undefined, page: pageNum, size: 10, lowStockOnly: lowStockOnly || undefined });
+      const data = await materialsApi.search({ keyword: keyword || undefined, materialGrade: grade || undefined, page: pageNum, size: 10, lowStockOnly: lowStockOnly || undefined });
       setPage(data);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Tải thất bại');
     } finally {
       setLoading(false);
     }
-  }, [keyword, pageNum, lowStockOnly]);
+  }, [keyword, grade, pageNum, lowStockOnly]);
 
   useEffect(() => {
     load();
@@ -62,6 +65,9 @@ export default function MaterialsPage() {
     setForm({
       sku: m.sku, name: m.name, unit: m.unit, costPrice: m.costPrice,
       sellPrice: m.sellPrice, minStock: m.minStock, location: m.location ?? '', brand: m.brand ?? '',
+      materialGrade: m.materialGrade ?? '', standard: m.standard ?? '', spec: m.spec ?? '',
+      thicknessMm: m.thicknessMm ?? null, widthMm: m.widthMm ?? null, lengthMm: m.lengthMm ?? null,
+      diameterMm: m.diameterMm ?? null, strengthGrade: m.strengthGrade ?? '', detail: m.detail ?? '',
     });
     setDialogOpen(true);
   };
@@ -73,11 +79,12 @@ export default function MaterialsPage() {
     }
     setSaving(true);
     try {
+      const payload = clean(form);
       if (editing) {
-        const { sku: _sku, ...payload } = form;
-        await materialsApi.update(editing.id, payload);
+        const { sku: _sku, ...rest } = payload;
+        await materialsApi.update(editing.id, rest);
       } else {
-        await materialsApi.create(form);
+        await materialsApi.create(payload);
       }
       setDialogOpen(false);
       load();
@@ -101,6 +108,25 @@ export default function MaterialsPage() {
     setForm((f) => ({ ...f, [k]: v }));
 
   const num = (v: string): number => (v === '' ? 0 : Number(v));
+  const numOrNull = (v: number | null | undefined): number | null =>
+    (v === null || v === undefined || Number.isNaN(v) ? null : v);
+  const strOrNull = (v: string | null | undefined): string | null =>
+    (!v || !v.trim() ? null : v.trim());
+
+  const clean = (f: CreateMaterialInput): CreateMaterialInput => ({
+    ...f,
+    brand: strOrNull(f.brand),
+    location: strOrNull(f.location),
+    materialGrade: strOrNull(f.materialGrade),
+    standard: strOrNull(f.standard),
+    spec: strOrNull(f.spec),
+    thicknessMm: numOrNull(f.thicknessMm),
+    widthMm: numOrNull(f.widthMm),
+    lengthMm: numOrNull(f.lengthMm),
+    diameterMm: numOrNull(f.diameterMm),
+    strengthGrade: strOrNull(f.strengthGrade),
+    detail: strOrNull(f.detail),
+  });
 
   return (
     <div className="space-y-4">
@@ -121,16 +147,24 @@ export default function MaterialsPage() {
         </CardHeader>
         <CardContent className="flex flex-wrap items-end gap-3">
           <div className="min-w-52 flex-1 space-y-1">
-            <Label>Từ khóa (mã/tên)</Label>
+            <Label>Từ khóa (mã/tên/quy cách)</Label>
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-8"
-                placeholder="VD: thép, VT-THEP..."
+                placeholder="VD: thép, M12x50..."
                 value={keyword}
                 onChange={(e) => { setKeyword(e.target.value); setPageNum(0); }}
               />
             </div>
+          </div>
+          <div className="space-y-1">
+            <Label>Mác</Label>
+            <Input
+              placeholder="VD: CT3"
+              value={grade}
+              onChange={(e) => { setGrade(e.target.value); setPageNum(0); }}
+            />
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -151,6 +185,7 @@ export default function MaterialsPage() {
                 <tr className="border-b text-left text-muted-foreground">
                   <th className="px-4 py-2">SKU</th>
                   <th className="px-4 py-2">Tên</th>
+                  <th className="px-4 py-2">Mác / Quy cách</th>
                   <th className="px-4 py-2">ĐVT</th>
                   <th className="px-4 py-2 text-right">Giá vốn</th>
                   <th className="px-4 py-2 text-right">Giá bán</th>
@@ -162,12 +197,15 @@ export default function MaterialsPage() {
               </thead>
               <tbody>
                 {loading && (
-                  <tr><td colSpan={9} className="px-4 py-6 text-center text-muted-foreground">Đang tải...</td></tr>
+                  <tr><td colSpan={10} className="px-4 py-6 text-center text-muted-foreground">Đang tải...</td></tr>
                 )}
                 {!loading && page?.content.map((m) => (
                   <tr key={m.id} className="border-b hover:bg-accent/50">
                     <td className="px-4 py-2 font-medium">{m.sku}</td>
                     <td className="px-4 py-2">{m.name}</td>
+                    <td className="px-4 py-2 text-xs text-muted-foreground">
+                      {[m.materialGrade, m.spec, m.strengthGrade].filter(Boolean).join(' · ') || '—'}
+                    </td>
                     <td className="px-4 py-2">{m.unit}</td>
                     <td className="px-4 py-2 text-right">{formatVND(m.costPrice)}</td>
                     <td className="px-4 py-2 text-right">{formatVND(m.sellPrice)}</td>
@@ -199,7 +237,7 @@ export default function MaterialsPage() {
                   </tr>
                 ))}
                 {!loading && (!page || page.content.length === 0) && (
-                  <tr><td colSpan={9} className="px-4 py-6 text-center text-muted-foreground">Chưa có vật tư</td></tr>
+                  <tr><td colSpan={10} className="px-4 py-6 text-center text-muted-foreground">Chưa có vật tư</td></tr>
                 )}
               </tbody>
             </table>
@@ -262,6 +300,50 @@ export default function MaterialsPage() {
             <div className="space-y-1">
               <Label>Vị trí kệ</Label>
               <Input value={form.location ?? ''} onChange={(e) => set('location', e.target.value)} placeholder="Kệ A1" />
+            </div>
+            <div className="space-y-1">
+              <Label>Mác vật liệu</Label>
+              <Input value={form.materialGrade ?? ''} onChange={(e) => set('materialGrade', e.target.value)} placeholder="CT3, C45, Inox 304..." />
+            </div>
+            <div className="space-y-1">
+              <Label>Tiêu chuẩn</Label>
+              <Input value={form.standard ?? ''} onChange={(e) => set('standard', e.target.value)} placeholder="JIS, ASTM A36, TCVN..." />
+            </div>
+            <div className="space-y-1">
+              <Label>Quy cách chính</Label>
+              <Input value={form.spec ?? ''} onChange={(e) => set('spec', e.target.value)} placeholder="M12x50, 10x1500x6000" />
+            </div>
+            <div className="col-span-2 grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Dày (mm)</Label>
+                <Input type="number" min={0} step="any" value={form.thicknessMm ?? ''} onChange={(e) => set('thicknessMm', e.target.value === '' ? null : num(e.target.value))} />
+              </div>
+              <div className="space-y-1">
+                <Label>Rộng (mm)</Label>
+                <Input type="number" min={0} step="any" value={form.widthMm ?? ''} onChange={(e) => set('widthMm', e.target.value === '' ? null : num(e.target.value))} />
+              </div>
+              <div className="space-y-1">
+                <Label>Dài (mm)</Label>
+                <Input type="number" min={0} step="any" value={form.lengthMm ?? ''} onChange={(e) => set('lengthMm', e.target.value === '' ? null : num(e.target.value))} />
+              </div>
+              <div className="space-y-1">
+                <Label>Đường kính (mm)</Label>
+                <Input type="number" min={0} step="any" value={form.diameterMm ?? ''} onChange={(e) => set('diameterMm', e.target.value === '' ? null : num(e.target.value))} />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Cấp bền</Label>
+              <Input value={form.strengthGrade ?? ''} onChange={(e) => set('strengthGrade', e.target.value)} placeholder="4.8, 8.8, 10.9..." />
+            </div>
+            <div className="col-span-2 space-y-1">
+              <Label>Chi tiết kỹ thuật còn lại</Label>
+              <textarea
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                rows={2}
+                value={form.detail ?? ''}
+                onChange={(e) => set('detail', e.target.value)}
+                placeholder="Bước ren, lớp mạ, xử lý nhiệt..."
+              />
             </div>
           </div>
           <SheetFooter>

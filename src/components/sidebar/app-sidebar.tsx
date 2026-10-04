@@ -1,6 +1,6 @@
 import {
   Home, Package, Warehouse, ClipboardList, ShoppingCart, ReceiptText,
-  Users, Truck, Wallet, CalendarClock, BarChart3, ShieldCheck, PackagePlus,
+  Users, Truck, Wallet, CalendarClock, BarChart3, ShieldCheck, PackagePlus, PackageOpen,
 } from "lucide-react"
 import {
   Sidebar as ShadcnSidebar,
@@ -34,6 +34,7 @@ const mainItems: NavItem[] = [
   { title: "Nhập nhanh", url: "/quick-import", icon: PackagePlus, permission: "INVENTORY_WRITE" },
   { title: "Sửa chữa", url: "/work-orders", icon: ClipboardList, permission: "ORDER_READ" },
   { title: "Bán hàng", url: "/sales", icon: ShoppingCart, permission: "ORDER_READ" },
+  { title: "Phiếu xuất", url: "/goods-issues", icon: PackageOpen, permission: "INVENTORY_READ" },
   { title: "Hóa đơn", url: "/invoices", icon: ReceiptText, permission: "INVOICE_READ" },
   { title: "Thu chi", url: "/payments", icon: Wallet, permission: ["PAYMENT_MANAGE", "INVOICE_READ"] },
   { title: "Khách hàng", url: "/customers", icon: Users, permission: "CUSTOMER_READ" },

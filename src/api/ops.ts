@@ -45,6 +45,8 @@ export const paymentsApi = {
 
 export interface SearchAdvancesParams extends SearchParams {
   customerId?: number;
+  workOrderId?: number;
+  salesOrderId?: number;
   status?: AdvanceStatus;
 }
 
@@ -52,7 +54,7 @@ export const advancesApi = {
   search: (p: SearchAdvancesParams) =>
     unwrap<PageResponse<AdvanceResponse>>(apiClient.get('/api/advances', { params: toParams(p) })),
   getById: (id: number) => unwrap<AdvanceResponse>(apiClient.get(`/api/advances/${id}`)),
-  create: (input: { customerId: number; workOrderId?: number | null; salesOrderId?: number | null; amount: number; method: PaymentMethod; transactionRef?: string | null; note?: string | null }) =>
+  create: (input: { workOrderId?: number | null; salesOrderId?: number | null; amount: number; method: PaymentMethod; transactionRef?: string | null; note?: string | null }) =>
     unwrap<AdvanceResponse>(apiClient.post('/api/advances', input)),
   apply: (id: number, invoiceId: number) =>
     unwrap<PaymentResponse>(apiClient.post(`/api/advances/${id}/apply`, { invoiceId })),
