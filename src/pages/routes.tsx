@@ -18,6 +18,8 @@ import CustomersPage from './customers/CustomersPage';
 import InvoicesPage from './invoices/InvoicesPage';
 import InvoiceDetailPage from './invoices/InvoiceDetailPage';
 import PaymentsPage from './payments/PaymentsPage';
+import PayrollsPage from './payrolls/PayrollsPage';
+import LeavesPage from './payrolls/LeavesPage';
 
 // Define route configuration with breadcrumbs
 const routes: Array<{
@@ -115,6 +117,16 @@ const routes: Array<{
         path: 'payments',
         element: <PaymentsPage />,
         breadcrumb: { label: 'Thu chi', href: '/payments' },
+      },
+      {
+        path: 'payrolls',
+        element: <PayrollsPage />,
+        breadcrumb: { label: 'Lương', href: '/payrolls' },
+      },
+      {
+        path: 'leaves',
+        element: <LeavesPage />,
+        breadcrumb: { label: 'Chấm nghỉ', href: '/leaves' },
       },
       // Add more protected routes here with their breadcrumbs
     ],

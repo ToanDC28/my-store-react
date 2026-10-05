@@ -1,6 +1,6 @@
 import {
   Home, Package, Warehouse, ClipboardList, ShoppingCart, ReceiptText,
-  Users, Truck, Wallet, CalendarClock, BarChart3, ShieldCheck, PackagePlus, PackageOpen,
+  Users, Truck, Wallet, CalendarClock, CalendarDays, BarChart3, ShieldCheck, PackagePlus, PackageOpen,
 } from "lucide-react"
 import {
   Sidebar as ShadcnSidebar,
@@ -43,6 +43,7 @@ const mainItems: NavItem[] = [
 
 const manageItems: NavItem[] = [
   { title: "Lương", url: "/payrolls", icon: CalendarClock, permission: "PAYROLL_READ" },
+  { title: "Chấm nghỉ", url: "/leaves", icon: CalendarDays, permission: "PAYROLL_READ" },
   { title: "Báo cáo", url: "/reports", icon: BarChart3, permission: "INVOICE_READ" },
   { title: "Nhân sự", url: "/users", icon: ShieldCheck, permission: "USER_READ" },
 ];

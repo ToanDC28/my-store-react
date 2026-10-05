@@ -111,20 +111,48 @@ export interface SearchPayrollsParams extends SearchParams {
   status?: PayrollStatus;
 }
 
+export interface SalaryGrade {
+  id: number;
+  level: string;
+  baseSalary: number;
+  allowance: number;
+  overtimeRatePerHour: number;
+  active: boolean;
+}
+
+export interface LeaveItem {
+  id: number;
+  staffId: number;
+  staffUsername?: string | null;
+  leaveDate: string;
+  note?: string | null;
+}
+
+export interface PayrollSetting {
+  offWeekdays: string;
+  standardMonthDays: number;
+}
+
 export const payrollApi = {
-  grades: () => unwrap<{ id: number; level: string; baseSalary: number; allowance: number; overtimeRatePerHour: number; active: boolean }[]>(apiClient.get('/api/salary-grades')),
+  grades: () => unwrap<SalaryGrade[]>(apiClient.get('/api/salary-grades')),
   createGrade: (input: { level: string; baseSalary: number; allowance?: number; overtimeRatePerHour: number }) =>
     unwrap<{ id: number; level: string }>(apiClient.post('/api/salary-grades', input)),
-  attendances: (period?: string, staffId?: number) =>
-    unwrap<unknown[]>(apiClient.get('/api/attendances', { params: toParams({ period, staffId }) })),
-  upsertAttendance: (input: { staffId: number; period: string; salaryGradeId: number; workingDays?: number; overtimeHours?: number; leaveDays?: number; note?: string | null }) =>
-    unwrap<unknown>(apiClient.post('/api/attendances', input)),
+  leaves: (staffId?: number, from?: string, to?: string) =>
+    unwrap<LeaveItem[]>(apiClient.get('/api/leaves', { params: toParams({ staffId, from, to }) })),
+  recordLeave: (input: { staffId: number; leaveDate: string; note?: string | null }) =>
+    unwrap<LeaveItem>(apiClient.post('/api/leaves', input)),
+  deleteLeave: (id: number) => unwrap<void>(apiClient.delete(`/api/leaves/${id}`)),
+  settings: () => unwrap<PayrollSetting>(apiClient.get('/api/payroll-settings')),
+  updateSettings: (input: { offWeekdays?: string; standardMonthDays?: number }) =>
+    unwrap<PayrollSetting>(apiClient.put('/api/payroll-settings', input)),
   search: (p: SearchPayrollsParams) =>
     unwrap<PageResponse<PayrollResponse>>(apiClient.get('/api/payrolls', { params: toParams(p) })),
   my: (period?: string) =>
     unwrap<PayrollResponse[]>(apiClient.get('/api/payrolls/my', { params: toParams({ period }) })),
   generate: (period: string) =>
     unwrap<PayrollResponse[]>(apiClient.post('/api/payrolls/generate', null, { params: { period } })),
+  update: (id: number, input: { bonus?: number; overtimeHours?: number; taxDeduction?: number; note?: string | null }) =>
+    unwrap<PayrollResponse>(apiClient.put(`/api/payrolls/${id}`, input)),
   approve: (id: number, input?: { taxDeduction?: number; note?: string | null }) =>
     unwrap<PayrollResponse>(apiClient.post(`/api/payrolls/${id}/approve`, input ?? {})),
   reject: (id: number, note?: string) =>

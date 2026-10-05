@@ -15,7 +15,7 @@ export type InvoiceStatus = 'DRAFT' | 'ISSUED' | 'PARTIAL' | 'PAID' | 'OVERDUE' 
 export type PaymentMethod = 'CASH' | 'BANK_TRANSFER';
 export type PaymentStatus = 'SUCCESS' | 'FAILED' | 'REFUNDED';
 export type AdvanceStatus = 'ACTIVE' | 'APPLIED' | 'CANCELLED';
-export type PayrollStatus = 'PENDING' | 'APPROVED' | 'PAID' | 'REJECTED';
+export type PayrollStatus = 'PENDING' | 'READY_TO_PAY' | 'APPROVED' | 'PAID' | 'REJECTED';
 export type CustomerType = 'LE_QUEN' | 'HOP_DONG';
 export type StockRefType = 'GRN' | 'GIN' | 'WORK_ORDER' | 'ADJUST' | 'TRANSFER';
 
@@ -351,6 +351,10 @@ export interface PayrollResponse {
   overtimeHours: number;
   overtimePay: number;
   grossPay: number;
+  bonus: number;
+  leaveDays: number;
+  offDays?: string | null;
+  leaveDeduction: number;
   insuranceDeduction: number;
   taxDeduction: number;
   netPay: number;
